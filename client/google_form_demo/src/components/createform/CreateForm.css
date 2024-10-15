@@ -1,0 +1,123 @@
+.form-name {
+  width: 100%;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+}
+
+.form-contain {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  border-radius: 10px;
+  /* padding-top: 5px; */
+  border-top: 10px solid #673ab7;
+  border-left: 10px solid #4285f4;
+  box-shadow: 1px 1px 3px gray;
+}
+
+.form-name {
+  margin-top: 10px;
+  width: 95%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  border-left: 10px solid #4285f4;
+  box-shadow: 1px 1px 3px gray;
+}
+
+.form-content {
+  width: 100%;
+}
+
+.formname-row {
+  display: flex;
+  flex-direction: column;
+  /* align-items: center; */
+  background-color: white;
+  border-bottom: 2px solid gray;
+  width: 100%;
+  padding: 5px 10px;
+  outline: none;
+}
+.formname-row:focus {
+  border-bottom: 3px solid purple;
+}
+
+/* .all-input-formname {
+  margin-top: 10px;
+} */
+
+.formname-input-name {
+  width: 95%;
+  border-bottom: 1px solid rgb(202, 202, 202);
+  background-color: white;
+  color: black;
+  font-size: 20px;
+  padding: 5px;
+  outline: none;
+}
+
+.formname-input-name:focus {
+  border-bottom: 3px solid #673ab7;
+}
+
+.formname-input-description {
+  width: 95%;
+  background-color: white;
+  border-bottom: 1px solid rgb(202, 202, 202);
+  color: black;
+  padding: 2px;
+  outline: none;
+}
+
+.formname-input-description:focus {
+  border-bottom: 3px solid #673ab7;
+}
+
+.error {
+  color: red;
+  font-size: 10px;
+}
+
+.all-form-details {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.add-formname {
+  width: 100%;
+}
+.add-form-question {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0px;
+  border-radius: 10px;
+  background-color: white;
+}
+
+.add-question {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 20px;
+}
+.add-question-btn {
+  color: rgb(255, 255, 255);
+  font-size: 15px;
+  background-color: #22005c;
+  padding: 10px;
+  border-radius: 9px;
+  font-weight: 600;
+  border: 5px solid rgb(0, 0, 0);
+}

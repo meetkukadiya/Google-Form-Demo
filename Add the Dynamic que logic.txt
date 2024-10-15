@@ -1,0 +1,1284 @@
+CreateForm.tsx 
+
+
+import React, { useEffect, useRef, useState } from "react";
+import "./CreateForm.css";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import AddQuestion from "../addquestion/AddQuestion";
+
+interface InitialValues {
+  formname: string;
+  formdescription: string;
+}
+
+interface Question {
+  id: number;
+  questionNumber: number;
+  questionText: string;
+  inputType: string;
+  options: string[];
+  isRequired: boolean;
+}
+
+function CreateForm() {
+  const initialValues: InitialValues = {
+    formname: "",
+    formdescription: "",
+  };
+
+  const [addQuestion, setaddQuestion] = useState<Question[]>([
+    {
+      id: 1,
+      questionNumber: 1,
+      questionText: "",
+      inputType: "",
+      options: [],
+      isRequired: false,
+    },
+  ]);
+
+  const FormNameSchema = Yup.object().shape({
+    formname: Yup.string().required("Please enter form name"),
+    formdescription: Yup.string(),
+  });
+
+  const addQuestionHandler = () => {
+    const queID =
+      addQuestion.length > 0
+        ? Math.max(...addQuestion.map((queNo) => queNo.id)) + 1
+        : 1;
+
+    setaddQuestion([
+      ...addQuestion,
+      {
+        id: queID,
+        questionNumber: addQuestion.length + 1,
+        questionText: "",
+        inputType: "",
+        options: [],
+        isRequired: false,
+      },
+    ]);
+  };
+
+  const handleDeleteQuestion = (questionId: number) => {
+    const updatedQuestions = addQuestion.filter(
+      (queNo) => queNo.id !== questionId
+    );
+    setaddQuestion(
+      updatedQuestions.map((queNo, index) => ({
+        ...queNo,
+        questionNumber: index + 1,
+      }))
+    );
+  };
+
+  const handleQuestionDataChange = (data: any) => {
+    const updatedQuestions = addQuestion.map((question) =>
+      question.questionNumber === data.questionNumber
+        ? { ...question, ...data }
+        : question
+    );
+    setaddQuestion(updatedQuestions);
+  };
+
+  const handleSubmit = () => {
+    const formData = {
+      questions: addQuestion,
+    };
+
+    console.log("Form data:", formData);
+  };
+
+  // const addQuestionHandler = () => {
+  //   setaddQuestion([...addQuestion, addQuestion.length + 1]);
+  // };
+
+  // const handleDeleteQuestion = (questionNumber: number) => {
+  //   const updatedQuestions = addQuestion.filter(
+  //     (_, currQueNo) => currQueNo !== questionNumber
+  //   );
+  //   setaddQuestion(updatedQuestions);
+  // };
+
+  return (
+    <>
+      <div className="all-form-details">
+        <div className="add-formname">
+          <Formik
+            initialValues={initialValues}
+            validationSchema={FormNameSchema}
+            // onClick={handleSubmit}
+            onSubmit={(values: InitialValues) => {
+              console.log(values);
+            }}
+          >
+            {(formik) => {
+              const { errors, touched, isValid, dirty } = formik;
+              return (
+                <>
+                  <div className="form-container">
+                    <div>
+                      <h1 className="heading">Create Form</h1>
+                    </div>
+                    <Form className="form-name">
+                      <div className="form-contain">
+                        <div className="all-input-formname">
+                          <div className="formname-row">
+                            <Field
+                              type="text"
+                              name="formname"
+                              id="formname"
+                              placeholder="Please Enter Form Name"
+                              className={`formname-input-name 
+                ${errors.formname && touched.formname ? "input-error" : null}`}
+                            />
+                            <ErrorMessage
+                              name="formname"
+                              component="span"
+                              className="error"
+                            />
+                          </div>
+
+                          <div className="formname-row">
+                            <Field
+                              type="text"
+                              name="formdescription"
+                              id="formdescription"
+                              placeholder="Form description"
+                              className={`formname-input-description ${
+                                errors.formdescription &&
+                                touched.formdescription
+                                  ? "input-error"
+                                  : null
+                              }`}
+                            />
+                            <ErrorMessage
+                              name="formdescription"
+                              component="span"
+                              className="error"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </Form>
+                  </div>
+                </>
+              );
+            }}
+          </Formik>
+        </div>
+        <div className="add-form-question">
+          {addQuestion.map((question) => (
+            <AddQuestion
+              key={question.id}
+              questionNumber={question.questionNumber}
+              onDelete={() => handleDeleteQuestion(question.id)}
+              onQuestionDataChange={handleQuestionDataChange}
+            />
+          ))}
+        </div>
+        <div className="add-question">
+          <button className="add-question-btn" onClick={addQuestionHandler}>
+            Add Question
+          </button>
+        </div>
+        <div className="w-full pb-4">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="focus:outline-none w-full text-white bg-sky-500 hover:bg-sky-700 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2  dark:focus:ring-purple-900"
+          >
+            Submit Form
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default CreateForm;
+
+
+
+
+
+=================================================
+
+
+
+AddQuestion.tsx
+
+
+import React, { useState } from "react";
+import "./AddQuestion.css";
+import AnswerType from "../AnswerType";
+
+interface AddQuestionProps {
+  questionNumber: number;
+  onDelete: (questionNumber: number) => void;
+  onQuestionDataChange: (data: any) => void;
+}
+
+function AddQuestion({
+  questionNumber,
+  onDelete,
+  onQuestionDataChange,
+}: AddQuestionProps) {
+  const [inputType, setInputType] = useState("");
+  const [addOption, setAddOption] = useState<string[]>([]);
+  // console.log("addOption", addOption);
+  const [isRequired, setIsRequired] = useState(false);
+  const [questionText, setQuestionText] = useState("");
+
+  const notifyParent = () => {
+    onQuestionDataChange({
+      questionNumber,
+      questionText,
+      inputType,
+      options: addOption,
+      isRequired,
+    });
+  };
+
+  const handleTypeChange = (event: any) => {
+    setInputType(event.target.value);
+    setAddOption([""]);
+    notifyParent();
+  };
+
+  const handleQuestionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setQuestionText(event.target.value);
+    notifyParent();
+  };
+
+  const handleDeleteQuestion = () => {
+    onDelete(questionNumber);
+  };
+
+  const handleAddOption = () => {
+    setAddOption([...addOption, ""]);
+    notifyParent();
+    console.log("Option ===> ", addOption);
+
+    // console.log("Add Option in Question Number ==>  ", questionNumber);
+  };
+
+  const handleOptionChange = (index: number, value: string) => {
+    const updatedOptions = [...addOption];
+    updatedOptions[index] = value;
+    setAddOption(updatedOptions);
+    notifyParent();
+    // console.log(
+    //   "Question Number",
+    //   questionNumber,
+    //   "Option Number ",
+    //   index,
+    //   "Value is ",
+    //   value,
+    //   inputType
+    // );
+  };
+
+  const handleDeleteOption = (index: number) => {
+    const updatedOptions = addOption.filter((_, i) => i !== index);
+    setAddOption(updatedOptions);
+    notifyParent();
+  };
+
+  const handleRequiredChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsRequired(event.target.checked);
+    console.log("Answer Required:", event.target.checked);
+  };
+
+  return (
+    <>
+      <div className="question-container">
+        <h1>Que. {questionNumber}</h1>
+        <div className="que-type">
+          <input
+            type="text"
+            placeholder={`Enter question ${questionNumber}`}
+            className="enter-que"
+            onChange={handleQuestionChange}
+            required
+          />
+          <select
+            name=""
+            id=""
+            className="select-que-type"
+            value={inputType}
+            onChange={handleTypeChange}
+          >
+            <option value="" disabled>
+              Que. Type
+            </option>
+            <option value="input">Short Answer</option>
+            <option value="textarea">Paragraph</option>
+            <option value="radio">Radio</option>
+            <option value="checkbox">Checkbox</option>
+            <option value="dropdown">Dropdown</option>
+          </select>
+        </div>
+
+        <AnswerType
+          inputType={inputType}
+          addOption={addOption}
+          onOptionChange={handleOptionChange}
+          onDeleteOption={handleDeleteOption}
+        />
+
+        {(inputType === "checkbox" ||
+          inputType === "dropdown" ||
+          inputType === "radio") && (
+          <div>
+            <button
+              onClick={handleAddOption}
+              className="mt-1	h-10 w-20 text-xs bg-blue-200 rounded-lg	border-2 border-indigo-600 "
+            >
+              Add Option
+            </button>
+          </div>
+        )}
+        <div className="all-form-btn">
+          <div>
+            <label className="inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                value="true"
+                className="sr-only peer"
+                onChange={handleRequiredChange}
+              />
+              <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              <span className="ms-3 text-sm font-medium text-black dark:text-gray-300">
+                Answer Required
+              </span>
+            </label>
+          </div>
+          {questionNumber !== 1 && (
+            <div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                x="10px"
+                y="10px"
+                width="100"
+                height="100"
+                viewBox="0 0 30 30"
+                className="form-btn"
+                onClick={handleDeleteQuestion}
+              >
+                <path d="M 14.984375 2.4863281 A 1.0001 1.0001 0 0 0 14 3.5 L 14 4 L 8.5 4 A 1.0001 1.0001 0 0 0 7.4863281 5 L 6 5 A 1.0001 1.0001 0 1 0 6 7 L 24 7 A 1.0001 1.0001 0 1 0 24 5 L 22.513672 5 A 1.0001 1.0001 0 0 0 21.5 4 L 16 4 L 16 3.5 A 1.0001 1.0001 0 0 0 14.984375 2.4863281 z M 6 9 L 7.7929688 24.234375 C 7.9109687 25.241375 8.7633438 26 9.7773438 26 L 20.222656 26 C 21.236656 26 22.088031 25.241375 22.207031 24.234375 L 24 9 L 6 9 z"></path>
+              </svg>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default AddQuestion;
+
+
+
+=================================================
+
+AnswerType.tsx
+
+import React, { FC } from "react";
+
+interface AnswerTypeProps {
+  inputType: string;
+  addOption: string[];
+  onOptionChange: (index: number, value: string) => void;
+  onDeleteOption: (index: number) => void;
+}
+
+const AnswerType: FC<AnswerTypeProps> = ({
+  inputType,
+  addOption,
+  onOptionChange,
+  onDeleteOption,
+}) => {
+  return (
+    <div className="answer-type">
+      {addOption.map((option, index) => (
+        <div key={index} className="option-row">
+          {inputType === "dropdown" && <h3>{index + 1}.</h3>}
+
+          {(inputType === "radio" || inputType === "checkbox") && (
+            <div>
+              <input
+                type={inputType}
+                className="add-option-checkbox border-b-2 border-color:#808080"
+                disabled
+              />
+              <input
+                type="text"
+                placeholder={`Option ${index + 1}`}
+                className="add-option-checkbox"
+                onChange={(e) => onOptionChange(index, e.target.value)}
+                value={option}
+              />
+            </div>
+          )}
+
+          {inputType !== "radio" && inputType !== "checkbox" && (
+            <input
+              type="text"
+              placeholder={
+                inputType === "dropdown"
+                  ? `Option ${index + 1}`
+                  : inputType === "input"
+                  ? "Short Question"
+                  : inputType === "textarea"
+                  ? "Paragraph Answer"
+                  : "Question Type"
+              }
+              className={
+                inputType === "dropdown"
+                  ? "add-option-checkbox"
+                  : inputType === "input"
+                  ? "w-9/12	border-b-2 border-color:#808080 pb-2 "
+                  : inputType === "textarea"
+                  ? "w-9/12  border-b-2 border-color:#808080 pb-6"
+                  : "add-option-checkbox"
+              }
+              onChange={(e) => onOptionChange(index, e.target.value)}
+              value={option}
+              disabled={!(inputType === "dropdown")}
+            />
+          )}
+
+          {index !== 0 && (
+            <button
+              onClick={() => onDeleteOption(index)}
+              className="delete-option-btn"
+            >
+              <svg
+                version="1.1"
+                id="Layer_1"
+                xmlns="http://www.w3.org/2000/svg"
+                x="10px"
+                y="10px"
+                width="122.881px"
+                height="122.88px"
+                viewBox="0 0 122.881 122.88"
+                enable-background="new 0 0 122.881 122.88"
+                className="h-5 w-5 ml-3"
+              >
+                <g>
+                  <path d="M61.44,0c16.966,0,32.326,6.877,43.445,17.996c11.119,11.118,17.996,26.479,17.996,43.444 c0,16.967-6.877,32.326-17.996,43.444C93.766,116.003,78.406,122.88,61.44,122.88c-16.966,0-32.326-6.877-43.444-17.996 C6.877,93.766,0,78.406,0,61.439c0-16.965,6.877-32.326,17.996-43.444C29.114,6.877,44.474,0,61.44,0L61.44,0z M80.16,37.369 c1.301-1.302,3.412-1.302,4.713,0c1.301,1.301,1.301,3.411,0,4.713L65.512,61.444l19.361,19.362c1.301,1.301,1.301,3.411,0,4.713 c-1.301,1.301-3.412,1.301-4.713,0L60.798,66.157L41.436,85.52c-1.301,1.301-3.412,1.301-4.713,0c-1.301-1.302-1.301-3.412,0-4.713 l19.363-19.362L36.723,42.082c-1.301-1.302-1.301-3.412,0-4.713c1.301-1.302,3.412-1.302,4.713,0l19.363,19.362L80.16,37.369 L80.16,37.369z M100.172,22.708C90.26,12.796,76.566,6.666,61.44,6.666c-15.126,0-28.819,6.13-38.731,16.042 C12.797,32.62,6.666,46.314,6.666,61.439c0,15.126,6.131,28.82,16.042,38.732c9.912,9.911,23.605,16.042,38.731,16.042 c15.126,0,28.82-6.131,38.732-16.042c9.912-9.912,16.043-23.606,16.043-38.732C116.215,46.314,110.084,32.62,100.172,22.708 L100.172,22.708z" />
+                </g>
+              </svg>
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default AnswerType;
+
+
+=============================================
+Index.jsx (Routing)
+=============================================
+
+  {/* <Routes>
+        <Route
+          path="/"
+          element={
+            isAdmin ? (
+              <Navigate to="/addform" />
+            ) : isUser ? (
+              <Navigate to="/userpage" />
+            ) : (
+              <HomePage />
+            )
+          }
+        >
+          <Route
+            path="/login"
+            element={authToken ? <Navigate to="/addform" /> : <LoginPage />}
+          />
+          <Route
+            path="/register"
+            element={authToken ? <Navigate to="/addform" /> : <RegisterPage />}
+          />
+          <Route
+            path="/addform"
+            element={
+              <PrivateRoute>
+                <AddFormPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/userpage"
+            element={
+              <PrivateRoute>
+                <UserPage />
+              </PrivateRoute>
+            }
+          />
+        </Route> */}
+      {/* </Routes> */}
+
+================================================
+EditForm.tsx File 
+================================================
+
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { Formik, Form, Field, ErrorMessage, FieldArray } from "formik";
+import { Link, useNavigate } from "react-router-dom";
+import * as Yup from "yup";
+import { getCookie } from "typescript-cookie";
+import toast from "react-hot-toast";
+
+interface EditFormProps {
+  formId: string | null;
+}
+
+interface InitialValues {
+  formname: string;
+  formdescription: string;
+  questions: {
+    questionNumber: number;
+    questionText: string;
+    inputType: string;
+    options: string[];
+    isRequired: boolean;
+  }[];
+}
+
+const EditForm: React.FC<EditFormProps> = ({ formId }) => {
+  const [formData, setFormData] = useState<any>(null);
+
+  const initialValues: InitialValues = {
+    formname: "",
+    formdescription: "",
+    questions: [
+      {
+        questionNumber: 1,
+        questionText: "",
+        inputType: "text",
+        options: [""],
+        isRequired: false,
+      },
+    ],
+  };
+
+  //   const initialValues: InitialValues = {
+  //     formname: formData.formname,
+  //     formdescription: formData.formdescription,
+  //     questions: [
+  //       {
+  //         questionNumber: formData.questions.questionNumber,
+  //         questionText: formData.questions.questionText,
+  //         inputType: formData.inputType,
+  //         options: formData.options,
+  //         isRequired: formData.isRequired,
+  //       },
+  //     ],
+  //   };
+
+  //   console.log("Inital values: " + initialValues);
+
+  const FormSchema = Yup.object().shape({
+    formname: Yup.string()
+      .required("Please enter form name")
+      .min(3, "Name is too short")
+      .max(25, "Please enter short form name"),
+    formdescription: Yup.string(),
+    questions: Yup.array()
+      .of(
+        Yup.object().shape({
+          questionText: Yup.string().required("Please enter the question"),
+          inputType: Yup.string().required("Please select input type"),
+
+          options: Yup.array().when("inputType", {
+            is: (type: string) => {
+              console.log(type);
+              return (
+                type === "checkbox" || type === "radio" || type === "dropdown"
+              );
+            },
+            then: (schema) =>
+              schema.of(Yup.string().required("Please enter a option")),
+            otherwise: (schema) => schema.of(Yup.string()),
+          }),
+
+          isRequired: Yup.boolean(),
+        })
+      )
+      .required("Please add at least one question"),
+  });
+
+  console.log("Edit Form Props ", formId);
+
+  console.log("Form Data in Edit Form", formData);
+
+  useEffect(() => {
+    const fetchFormData = async () => {
+      if (formId) {
+        try {
+          const response = await axios.get(
+            `http://localhost:5000/api/getform/${formId}`
+          );
+          setFormData(response.data);
+        } catch (error) {
+          console.error("Error fetching form data", error);
+        }
+      }
+    };
+
+    fetchFormData();
+  }, [formId]);
+
+  const FormValue = {
+    formname: formData?.formname || "",
+    formdescription: formData?.formdescription || "",
+    questions: formData?.questions || [],
+  };
+
+  console.log("Form Initial Value ", FormValue);
+
+  if (!formData) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <>
+      <div>{/* <h2>Edit Form: {formData.formname}</h2> */}</div>
+      <div className="all-form-details">
+        <div className="add-formname">
+          <Formik
+            initialValues={initialValues}
+            validationSchema={FormSchema}
+            // onClick={handleSubmit}
+            //   onSubmit={handleSubmit}
+            onSubmit={(values, { resetForm }) => {
+              console.log("Form values: ", values);
+            }}
+          >
+            {({ values, errors, touched, isValid }) => {
+              console.log("Valid or Not ===> ", isValid, touched);
+              return (
+                <Form>
+                  <div className="form-container">
+                    <h1 className="heading">Edit Form</h1>
+
+                    <div className="form-contain">
+                      <div className="form-name">
+                        <Field
+                          type="text"
+                          name="formname"
+                          placeholder="Please Enter Form Name"
+                          className={`formname-row 
+                  ${
+                    errors.formname && touched.formname ? "input-error" : null
+                  }`}
+                        />
+                        <ErrorMessage
+                          name="formname"
+                          component="span"
+                          className="error"
+                        />
+
+                        <Field
+                          type="text"
+                          name="formdescription"
+                          placeholder="Form description"
+                          className={`formname-row 
+                  ${
+                    errors.formdescription && touched.formdescription
+                      ? "input-error"
+                      : null
+                  }`}
+                        />
+                        <ErrorMessage
+                          name="formdescription"
+                          component="span"
+                          className="error"
+                        />
+                      </div>
+
+                      <div className="add-form-question">
+                        <FieldArray name="questions">
+                          {({ insert, remove, push }) => (
+                            <div>
+                              {values.questions.map((question, index) => (
+                                <div
+                                  key={index}
+                                  className="flex flex-col ps-4 border-solid border-2 border-l-8 border-indigo-500 rounded-xl mb-3 gap-2 shadow-md	"
+                                >
+                                  {/* Question Number */}
+                                  <h3>Question {index + 1}</h3>
+                                  <div className="flex flex-row w-full">
+                                    <div className="question-input w-7/12">
+                                      {/* Enter Question */}
+                                      <Field
+                                        name={`questions.${index}.questionText`}
+                                        placeholder={`Enter Question ${
+                                          index + 1
+                                        } `}
+                                        type="text"
+                                        className={`h-9 p-2 outline-none border-b w-full 
+                                ${
+                                  `errors.questions.${index}.questionText` &&
+                                  `touched.questions.${index}.questionText`
+                                    ? "input-error"
+                                    : null
+                                }`}
+                                      />
+                                      <ErrorMessage
+                                        name={`questions.${index}.questionText`}
+                                        component="div"
+                                        className="field-error text-red-600"
+                                      />
+                                    </div>
+
+                                    <div className="input-type ml-10">
+                                      <Field
+                                        as="select"
+                                        name={`questions.${index}.inputType`}
+                                        className={`w-35 h-9
+                                ${
+                                  `errors.questions.${index}.inputType` &&
+                                  `touched.questions.${index}.inputType`
+                                    ? "input-error"
+                                    : null
+                                }`}
+                                      >
+                                        <option value="" disabled>
+                                          Select Que. Type
+                                        </option>
+                                        <option value="text">
+                                          Short Answer
+                                        </option>
+                                        <option value="textarea">
+                                          Paragraph Answer
+                                        </option>
+                                        <option value="checkbox">
+                                          Checkbox
+                                        </option>
+                                        <option value="radio">Radio</option>
+                                        <option value="dropdown">
+                                          Dropdown
+                                        </option>
+                                      </Field>
+                                      <ErrorMessage
+                                        name={`questions.${index}.inputType`}
+                                        component="div"
+                                        className="field-error"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  {(values.questions[index].inputType ===
+                                    "text" ||
+                                    values.questions[index].inputType ===
+                                      "textarea") && (
+                                    <div>
+                                      <input
+                                        type={
+                                          values.questions[index].inputType ===
+                                          "text"
+                                            ? "text"
+                                            : values.questions[index]
+                                                .inputType === "textarea"
+                                            ? "textarea"
+                                            : ""
+                                        }
+                                        placeholder={
+                                          values.questions[index].inputType ===
+                                          "text"
+                                            ? "Short Answer"
+                                            : values.questions[index]
+                                                .inputType === "textarea"
+                                            ? "Paragraph Answer"
+                                            : values.questions[index].inputType
+                                        }
+                                        className={
+                                          values.questions[index].inputType ===
+                                          "text"
+                                            ? "p-3 border-b-2 border-indigo-500 w-7/12 mb-3"
+                                            : values.questions[index]
+                                                .inputType === "textarea"
+                                            ? "p-6 border-b-2 border-indigo-500 w-7/12 mb-3"
+                                            : ""
+                                        }
+                                        disabled
+                                      />
+                                    </div>
+                                  )}
+
+                                  {!(
+                                    values.questions[index].inputType ===
+                                      "textarea" ||
+                                    values.questions[index].inputType === "text"
+                                  ) && (
+                                    <FieldArray
+                                      name={`questions.${index}.options`}
+                                    >
+                                      {({
+                                        remove: removeOption,
+                                        push: pushOption,
+                                      }) => (
+                                        <div>
+                                          {values.questions[index].options.map(
+                                            (option, optionIndex) => (
+                                              <div key={optionIndex}>
+                                                {!(
+                                                  values.questions[index]
+                                                    .inputType === "dropdown"
+                                                ) && (
+                                                  <input
+                                                    type={
+                                                      values.questions[index]
+                                                        .inputType
+                                                    }
+                                                    className="mr-3 border-b-2"
+                                                    disabled={
+                                                      values.questions[index]
+                                                        .inputType ===
+                                                        "radio" ||
+                                                      values.questions[index]
+                                                        .inputType ===
+                                                        "checkbox"
+                                                    }
+                                                  />
+                                                )}
+
+                                                <Field
+                                                  name={`questions.${index}.options.${optionIndex}`}
+                                                  placeholder={`Enter Option ${
+                                                    optionIndex + 1
+                                                  }`}
+                                                  type="text"
+                                                  className={`outline-none border-b pb-1 focus:border-b-2 focus:border-indigo-500 w-5/12 ${
+                                                    `errors.questions.${index}.options.${optionIndex}` &&
+                                                    `touched.questions.${index}.options.${optionIndex}`
+                                                      ? "input-error"
+                                                      : null
+                                                  }`}
+                                                />
+                                                {!(optionIndex === 0) && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      removeOption(optionIndex)
+                                                    }
+                                                  >
+                                                    <svg
+                                                      version="1.1"
+                                                      id="Layer_1"
+                                                      xmlns="http://www.w3.org/2000/svg"
+                                                      x="10px"
+                                                      y="10px"
+                                                      width="122.881px"
+                                                      height="122.88px"
+                                                      viewBox="0 0 122.881 122.88"
+                                                      enable-background="new 0 0 122.881 122.88"
+                                                      className="h-5 w-5 ml-3"
+                                                    >
+                                                      <g>
+                                                        <path d="M61.44,0c16.966,0,32.326,6.877,43.445,17.996c11.119,11.118,17.996,26.479,17.996,43.444 c0,16.967-6.877,32.326-17.996,43.444C93.766,116.003,78.406,122.88,61.44,122.88c-16.966,0-32.326-6.877-43.444-17.996 C6.877,93.766,0,78.406,0,61.439c0-16.965,6.877-32.326,17.996-43.444C29.114,6.877,44.474,0,61.44,0L61.44,0z M80.16,37.369 c1.301-1.302,3.412-1.302,4.713,0c1.301,1.301,1.301,3.411,0,4.713L65.512,61.444l19.361,19.362c1.301,1.301,1.301,3.411,0,4.713 c-1.301,1.301-3.412,1.301-4.713,0L60.798,66.157L41.436,85.52c-1.301,1.301-3.412,1.301-4.713,0c-1.301-1.302-1.301-3.412,0-4.713 l19.363-19.362L36.723,42.082c-1.301-1.302-1.301-3.412,0-4.713c1.301-1.302,3.412-1.302,4.713,0l19.363,19.362L80.16,37.369 L80.16,37.369z M100.172,22.708C90.26,12.796,76.566,6.666,61.44,6.666c-15.126,0-28.819,6.13-38.731,16.042 C12.797,32.62,6.666,46.314,6.666,61.439c0,15.126,6.131,28.82,16.042,38.732c9.912,9.911,23.605,16.042,38.731,16.042 c15.126,0,28.82-6.131,38.732-16.042c9.912-9.912,16.043-23.606,16.043-38.732C116.215,46.314,110.084,32.62,100.172,22.708 L100.172,22.708z" />
+                                                      </g>
+                                                    </svg>
+                                                  </button>
+                                                )}
+                                                <ErrorMessage
+                                                  name={`questions.${index}.options.${optionIndex}`}
+                                                  component="div"
+                                                  className="field-error text-red-600"
+                                                />
+                                              </div>
+                                            )
+                                          )}
+                                          <button
+                                            type="button"
+                                            onClick={() => pushOption("")}
+                                            className="mt-3 text-white bg-gray-800 hover:bg-gray-900 focus:outline-none  font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700"
+                                          >
+                                            Add Option
+                                          </button>
+                                        </div>
+                                      )}
+                                    </FieldArray>
+                                  )}
+
+                                  <div className="flex flex-row gap-5">
+                                    <div className="required-checkbox">
+                                      <Field
+                                        type="checkbox"
+                                        name={`questions.${index}.isRequired`}
+                                      />
+                                      <label>Required</label>
+                                    </div>
+                                    <div>
+                                      {!(index === 0) && (
+                                        <button
+                                          type="button"
+                                          // onClick={() => remove(index)}
+                                        >
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            x="10px"
+                                            y="10px"
+                                            width="100"
+                                            height="100"
+                                            viewBox="0 0 30 30"
+                                            className="w-6 h-6 flex justify-end"
+                                            onClick={() => remove(index)}
+                                          >
+                                            <path d="M 14.984375 2.4863281 A 1.0001 1.0001 0 0 0 14 3.5 L 14 4 L 8.5 4 A 1.0001 1.0001 0 0 0 7.4863281 5 L 6 5 A 1.0001 1.0001 0 1 0 6 7 L 24 7 A 1.0001 1.0001 0 1 0 24 5 L 22.513672 5 A 1.0001 1.0001 0 0 0 21.5 4 L 16 4 L 16 3.5 A 1.0001 1.0001 0 0 0 14.984375 2.4863281 z M 6 9 L 7.7929688 24.234375 C 7.9109687 25.241375 8.7633438 26 9.7773438 26 L 20.222656 26 C 21.236656 26 22.088031 25.241375 22.207031 24.234375 L 24 9 L 6 9 z"></path>
+                                          </svg>
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  push({
+                                    questionNumber: values.questions.length + 1,
+                                    questionText: "",
+                                    inputType: "text",
+                                    options: [""],
+                                    isRequired: false,
+                                  })
+                                }
+                                className="flex  mt-5 focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
+                              >
+                                Add Question
+                              </button>
+                            </div>
+                          )}
+                        </FieldArray>
+                      </div>
+                      <button
+                        type="submit"
+                        className={`${
+                          isValid
+                            ? "bg-blue-500 mb-5 w-1/2 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
+                            : "bg-blue-200 mb-5 w-1/2 hover:bg-blue-100 cursor-not-allowed	 text-black font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
+                        }`}
+                        disabled={!isValid}
+                      >
+                        Submit Form
+                      </button>
+                    </div>
+                  </div>
+                </Form>
+              );
+            }}
+          </Formik>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default EditForm;
+
+
+=================================================
+ResponseToAdmin.tsx 
+=================================================
+
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Formik, Form, Field, ErrorMessage, FieldArray } from "formik";
+import { Link, useNavigate } from "react-router-dom";
+import * as Yup from "yup";
+import { getCookie } from "typescript-cookie";
+import toast from "react-hot-toast";
+
+interface ResponseToAdminProps {
+  formId: string | null;
+}
+
+interface Question {
+  questionText: string;
+  inputType: string;
+  options: string[];
+  isRequired: boolean;
+  answer?: string | string[];
+}
+
+interface FormData {
+  formname: string;
+  formdescription: string;
+  questions: Question[];
+}
+interface FormValues {
+  questions: { answer?: string | string[] }[];
+}
+
+const ResponseToAdmin: React.FC<ResponseToAdminProps> = ({ formId }) => {
+  const [formData, setFormData] = useState<FormData | null>(null);
+  const [formSchema, setFormSchema] =
+    useState<Yup.ObjectSchema<FormValues> | null>(null);
+
+  console.log("Validation Schema", formSchema);
+
+  // const FormSchema = Yup.object().shape({
+  //   questions: Yup.array()
+  //     .of(
+  //       Yup.object().shape({
+  //         answer: Yup.string().required("Answer is required"),
+  //       })
+  //     )
+  //     .required("Please Enter an answer"),
+  // });
+
+  useEffect(() => {
+    const fetchFormData = async () => {
+      if (formId) {
+        try {
+          const response = await axios.get(
+            `http://localhost:5000/api/getform/${formId}`
+          );
+          const fetchedData = response.data;
+          setFormData(fetchedData);
+
+          const schema = Yup.object().shape({
+            questions: Yup.array()
+              .of(
+                Yup.object().shape({
+                  answer: fetchedData.questions.map(
+                    (question: any) => question.isRequired === true
+                  )
+                    ? Yup.string().required("An answer is required")
+                    : Yup.string(),
+                })
+              )
+              .required("Please enter at least one answer"),
+          });
+
+          setFormSchema(schema);
+
+          // const schema = Yup.object().shape({
+          //   questions: Yup.array()
+          //     .of(
+          //       Yup.object().shape({
+          //         inputType: Yup.string().required(), // Ensure inputType is defined
+          //         answer: Yup.lazy((question) => {
+          //           if (question.isRequired) {
+          //             if (question.inputType === 'checkbox') {
+          //               return Yup.array().min(1, "At least one checkbox must be selected");
+          //             }
+          //             if (question.inputType === 'radio') {
+          //               return Yup.string().required("An answer is required");
+          //             }
+          //             return Yup.string().required("An answer is required");
+          //           }
+          //           if (question.inputType === 'checkbox') {
+          //             return Yup.array();
+          //           }
+          //           return Yup.string();
+          //         }),
+          //       })
+          //     )
+          //     .required("Please enter at least one answer"),
+          // });
+
+          // setFormSchema(schema);
+
+          const FormSchema = fetchedData.questions.map(
+            (question: any) => question.isRequired
+          );
+
+          console.log("Fetched form data: ", response.data);
+          console.log("Fetch Data from server and for Schema ", FormSchema);
+        } catch (error) {
+          console.error("Error fetching form data", error);
+        }
+      }
+    };
+
+    fetchFormData();
+  }, [formId]);
+
+  const initialValues = {
+    questions:
+      formData?.questions.map((question: Question) => ({
+        answer: question.inputType === "checkbox" ? [] : "",
+      })) || [],
+  };
+
+  if (!formData) {
+    return <div>Loading...</div>;
+  }
+
+  console.log("Form Data For Response :", formData);
+
+  return (
+    <>
+      <div className="all-form-details">
+        <div className="add-formname">
+          <Formik
+            initialValues={initialValues}
+            enableReinitialize
+            validationSchema={formSchema}
+            // onClick={handleSubmit}
+            // onSubmit={handleEditSubmit}
+            onSubmit={(values, { resetForm }) => {
+              console.log("Form values: ", values);
+            }}
+          >
+            {({ values, errors, touched, isValid }) => {
+              console.log("Form Entered Value  ===> ", values);
+              return (
+                <Form>
+                  <div className="form-container">
+                    <h1 className="heading">Response to Form</h1>
+
+                    <div className="form-contain">
+                      <div className="form-name">
+                        <div className="formname-row font-bold text-xl">
+                          {formData.formname}
+                        </div>
+                        <div className="formname-row text-l font-medium	">
+                          {formData.formdescription}
+                        </div>
+                      </div>
+
+                      {/* <div className="add-form-question">
+                        <div className="flex flex-col ps-4 border-solid border-2 border-l-8 border-indigo-500 rounded-xl mb-3 gap-2 shadow-md">
+                          <h3>Question {1}</h3>
+                          <div className="flex flex-row w-full">
+                            <div className="question-input w-7/12">
+                              {formData.question}
+                            </div>
+                          </div>
+                        </div>
+                      </div> */}
+                      {formData.questions.map(
+                        (question: any, index: number) => (
+                          <div
+                            key={index}
+                            className="flex flex-col ps-4 mt-4 w-11/12 border-solid border-2 border-l-8 border-indigo-500 rounded-xl mb-3 gap-2 shadow-md"
+                          >
+                            <div className="flex flex-row w-full">
+                              <div className="question-input w-8/12">
+                                <h3 className="font-bold">
+                                  Question {index + 1}{" "}
+                                  {question.isRequired === true && (
+                                    <span className="text-red-600">*</span>
+                                  )}
+                                </h3>
+
+                                {/* {question} */}
+                                <div className="my-2">
+                                  <p className="text-l font-medium">
+                                    {question.questionText}
+                                  </p>
+                                </div>
+                                <div className="flex flex-col align-center mb-2">
+                                  {question.inputType === "text" && (
+                                    <div>
+                                      <Field
+                                        name={`questions.${index}.answer`}
+                                        type="text"
+                                        placeholder="Enter short answer"
+                                        className="p-2 border-b-2 border-indigo-500 w-full mb-3 outline-none"
+                                        required={question.isRequired === true}
+                                      />
+                                      <ErrorMessage
+                                        name={`questions.${index}.answer`}
+                                        component="div"
+                                        className="field-error text-red-600"
+                                      />
+                                    </div>
+                                  )}
+                                  {question.inputType === "textarea" && (
+                                    <div>
+                                      <Field
+                                        name={`questions.${index}.answer`}
+                                        type="textarea"
+                                        placeholder="Enter long answer"
+                                        className="py-5 px-2 border-b-2 border-indigo-500 w-full mb-3 outline-none"
+                                        required={question.isRequired === true}
+                                      />
+                                    </div>
+                                  )}
+                                  {question.inputType === "checkbox" &&
+                                    question.options.map(
+                                      (option: string, optionindex: string) => (
+                                        <div key={optionindex}>
+                                          <Field
+                                            name={`questions.${index}.answer.${optionindex}`}
+                                            type="checkbox"
+                                            value={option}
+                                            label={option}
+                                            required={
+                                              question.isRequired === true
+                                            }
+                                          />
+                                          <span className="ml-2">{option}</span>
+                                        </div>
+                                      )
+                                    )}
+                                  {question.inputType === "radio" &&
+                                    question.options.map(
+                                      (option: string, i: string) => (
+                                        <div key={i}>
+                                          <Field
+                                            name={`questions.${index}.answer`}
+                                            type="radio"
+                                            value={option}
+                                            label={option}
+                                            required={
+                                              question.isRequired === true
+                                            }
+                                          />
+                                          <span className="ml-2">{option}</span>
+                                        </div>
+                                      )
+                                    )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      )}
+
+                      <button
+                        type="submit"
+                        className={`${
+                          isValid
+                            ? "bg-blue-500 mb-5 w-1/2 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
+                            : "bg-blue-200 mb-5 w-1/2 hover:bg-blue-100 cursor-not-allowed	 text-black font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
+                        }`}
+                        disabled={!isValid}
+                      >
+                        Submit Form
+                      </button>
+                    </div>
+                  </div>
+                </Form>
+              );
+            }}
+          </Formik>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default ResponseToAdmin;
+
+
+
+
+
+

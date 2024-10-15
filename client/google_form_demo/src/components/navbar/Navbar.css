@@ -1,0 +1,39 @@
+nav {
+  display: flex;
+  justify-content: end;
+  padding-right: 40px;
+  align-items: center;
+  background: linear-gradient(to right, rgb(255, 208, 208), rgb(206, 217, 255));
+  height: 10vh;
+}
+nav ul {
+  display: flex;
+  flex-direction: row;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  gap: 30px;
+  text-decoration: none;
+}
+nav ul li {
+  display: inline;
+  overflow: hidden;
+  margin: 0px;
+  color: rgb(255, 159, 159);
+  text-decoration: none;
+  list-style: none;
+}
+
+nav ul li button {
+  display: block;
+  margin: 0px;
+  padding: 10px;
+  font-size: 20px;
+  background-color: rgb(45, 0, 88);
+  border: none;
+  border-radius: 7px;
+}
+nav ul li button a {
+  color: rgb(252, 255, 222);
+  text-decoration: none;
+}

@@ -1,0 +1,10 @@
+.createbtn {
+  margin: 0px;
+  padding: 10px;
+  font-size: 20px;
+  background-color: rgb(45, 0, 88);
+  border: none;
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+}
